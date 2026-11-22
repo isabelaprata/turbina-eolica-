@@ -1,0 +1,2038 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operação Turbina Eólica | Laboratório de Trigonometria</title>
+  <meta name="description" content="Jogo educativo interativo para aprender seno, cosseno e tangente investigando uma turbina eólica.">
+  <meta name="theme-color" content="#071b2d">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- QRCode.js CDN para geração real e funcional de QR Code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            navy: {
+              950: '#06101f',
+              900: '#0a192f',
+              800: '#112240',
+              700: '#1d3557',
+            },
+            turquoise: {
+              400: '#26e6e7',
+              500: '#00d2d3',
+              600: '#00a8a9',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Identidade visual educativa, responsiva e acessível */
+    :root { color-scheme: dark; }
+    html { scroll-behavior: smooth; }
+    body { background-image: radial-gradient(ellipse at 15% 5%, rgba(13,148,136,.16), transparent 35%), radial-gradient(ellipse at 90% 20%, rgba(14,165,233,.13), transparent 32%); }
+    button, input, select, textarea { font: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid #67e8f9; outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+    /* Estilos Customizados para Animações e Cena Interativa */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0a192f;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    /* Animação das pás da turbina na tela inicial */
+    @keyframes spinBlades {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .turbine-rotor-spin {
+      transform-origin: center;
+      animation: spinBlades 9s linear infinite;
+    }
+    .turbine-rotor-spin-slow {
+      transform-origin: center;
+      animation: spinBlades 13s linear infinite;
+    }
+
+    /* Animação do personagem técnico */
+    @keyframes floatIdle {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-4px); }
+    }
+    @keyframes celebrateJump {
+      0%, 100% { transform: translateY(0) scale(1); }
+      30% { transform: translateY(-10px) scale(1.04); }
+      60% { transform: translateY(-3px) scale(0.99); }
+    }
+    @keyframes shakeAlert {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .char-idle { animation: floatIdle 3s ease-in-out infinite; }
+    .char-celebrate { animation: celebrateJump 0.7s ease-in-out 2; }
+    .char-alert { animation: shakeAlert 0.4s ease-in-out 2; }
+
+    /* Customização de Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      border-radius: 999px;
+      background: #1d3557;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #00d2d3;
+      cursor: pointer;
+      border: 3px solid #0a192f;
+      box-shadow: 0 0 10px rgba(0, 210, 211, 0.6);
+      transition: transform 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    /* Estilos de Impressão para o Relatório Final */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only-clean {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-turquoise-500 selection:text-navy-950">
+
+  <!-- ===================================================================== -->
+  <!-- TELA 1: TELA INICIAL & ACESSO POR QR CODE REAL                        -->
+  <!-- ===================================================================== -->
+  <section id="screen-intro" class="min-h-screen flex flex-col justify-between relative overflow-hidden bg-gradient-to-b from-navy-950 via-navy-900 to-navy-800">
+    <!-- Fundo SVG decorativo com parque eólico animado -->
+    <div class="absolute inset-0 pointer-events-none opacity-25 overflow-hidden">
+      <svg class="w-full h-full" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id="gridGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00d2d3" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#0a192f" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- Grade de engenharia -->
+        <g stroke="url(#gridGrad)" stroke-width="1">
+          <line x1="0" y1="650" x2="1440" y2="650" />
+          <line x1="0" y1="700" x2="1440" y2="700" />
+          <line x1="0" y1="750" x2="1440" y2="750" />
+          <line x1="200" y1="0" x2="200" y2="800" />
+          <line x1="500" y1="0" x2="500" y2="800" />
+          <line x1="940" y1="0" x2="940" y2="800" />
+          <line x1="1240" y1="0" x2="1240" y2="800" />
+        </g>
+        <!-- Montanhas suaves -->
+        <path d="M0 680 Q 320 560 680 670 T 1440 640 L 1440 800 L 0 800 Z" fill="#112240" />
+        <!-- Turbina Eólica Esquerda -->
+        <g transform="translate(230, 260)">
+          <polygon points="-8,420 8,420 3,0 -3,0" fill="#cbd5e1" />
+          <g class="turbine-rotor-spin">
+            <circle cx="0" cy="0" r="10" fill="#00d2d3" />
+            <path d="M-3,0 L0,-160 L4,0 Z" fill="#f8fafc" />
+            <path d="M-3,0 L0,-160 L4,0 Z" fill="#f8fafc" transform="rotate(120)" />
+            <path d="M-3,0 L0,-160 L4,0 Z" fill="#f8fafc" transform="rotate(240)" />
+          </g>
+        </g>
+        <!-- Turbina Eólica Direita -->
+        <g transform="translate(1210, 320) scale(0.8)">
+          <polygon points="-8,420 8,420 3,0 -3,0" fill="#94a3b8" />
+          <g class="turbine-rotor-spin-slow">
+            <circle cx="0" cy="0" r="10" fill="#00d2d3" />
+            <path d="M-3,0 L0,-160 L4,0 Z" fill="#e2e8f0" />
+            <path d="M-3,0 L0,-160 L4,0 Z" fill="#e2e8f0" transform="rotate(120)" />
+            <path d="M-3,0 L0,-160 L4,0 Z" fill="#e2e8f0" transform="rotate(240)" />
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Cabeçalho Institucional -->
+    <header class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 pt-6 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-turquoise-500/20 border border-turquoise-500/40 flex items-center justify-center text-turquoise-400 font-mono font-bold text-lg shadow-lg">
+          Δθ
+        </div>
+        <div>
+          <span class="text-xs uppercase tracking-widest text-turquoise-400 font-semibold block">Laboratório Interativo de Matemática</span>
+          <span class="text-sm text-slate-300">Engenharia Eólica & Trigonometria no Triângulo Retângulo</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-xs font-mono bg-navy-800/80 border border-slate-700/70 px-3 py-1.5 rounded-full text-slate-300">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        Simulador em Tempo Real
+      </div>
+    </header>
+
+    <!-- Conteúdo Principal da Tela Inicial -->
+    <main class="relative z-10 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 my-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        
+        <!-- Coluna Esquerda: Título, Contextualização e Botões -->
+        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-turquoise-500/15 border border-turquoise-500/30 text-turquoise-400 text-xs sm:text-sm font-semibold">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Atividade Investigativa Aplicada
+          </div>
+
+          <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight text-white">
+            DESAFIO DE TRIGONOMETRIA: <br class="hidden sm:inline">
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-turquoise-400 to-cyan-200">OPERAÇÃO TURBINA EÓLICA</span>
+          </h1>
+
+          <p class="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0">
+            Assuma o papel de engenheiro técnico em um parque eólico! Utilize um <strong>clinômetro digital</strong> e relações trigonométricas (<span class="font-mono text-turquoise-400">sen, cos, tan</span>) para determinar a altura de aerogeradores e dimensionar cabos de ancoragem e segurança em campo.
+          </p>
+
+          <!-- Destaques Pedagógicos -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            <div class="bg-navy-800/70 border border-slate-700/60 rounded-xl p-3.5 text-left">
+              <div class="text-turquoise-400 font-bold text-sm mb-1">1. Experimentação</div>
+              <p class="text-xs text-slate-300">Altere ângulos e distâncias e veja o triângulo retângulo reagir em tempo real.</p>
+            </div>
+            <div class="bg-navy-800/70 border border-slate-700/60 rounded-xl p-3.5 text-left">
+              <div class="text-turquoise-400 font-bold text-sm mb-1">2. Investigação</div>
+              <p class="text-xs text-slate-300">Resolva 6 etapas práticas, analise padrões e registre suas conclusões técnicas.</p>
+            </div>
+            <div class="bg-navy-800/70 border border-slate-700/60 rounded-xl p-3.5 text-left">
+              <div class="text-turquoise-400 font-bold text-sm mb-1">3. Relatório Final</div>
+              <p class="text-xs text-slate-300">Conquiste medalhas e exporte/imprima seu relatório completo de desempenho.</p>
+            </div>
+          </div>
+
+          <!-- Botões de Ação -->
+          <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+            <button id="btn-start-game" onclick="startGame('campaign')" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-turquoise-500 to-cyan-400 hover:from-turquoise-400 hover:to-cyan-300 text-navy-950 font-extrabold text-lg shadow-xl shadow-turquoise-500/25 transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3 cursor-pointer">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              JOGAR AGORA
+            </button>
+
+            <button onclick="startGame('sandbox')" class="w-full sm:w-auto px-6 py-4 rounded-2xl bg-navy-800 hover:bg-navy-700 text-slate-100 font-semibold text-base border border-slate-600/80 transition-all flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-5 h-5 text-turquoise-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+              Modo Laboratório Livre
+            </button>
+          </div>
+        </div>
+
+        <!-- Coluna Direita: Card de Acesso Mobile por QR Code Funcional -->
+        <div class="lg:col-span-5">
+          <div class="bg-navy-800/90 backdrop-blur-md border border-turquoise-500/30 rounded-3xl p-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="p-2 rounded-xl bg-turquoise-500/20 text-turquoise-400">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                </span>
+                <div>
+                  <h2 class="font-bold text-white text-base">Acesso Rápido pelo Celular</h2>
+                  <p class="text-xs text-slate-400">Escaneie o QR Code com a câmera do smartphone</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Container do QR Code Real -->
+            <div class="flex flex-col items-center justify-center bg-white p-4 rounded-2xl mx-auto w-fit shadow-inner">
+              <div id="qrcode-container" class="flex items-center justify-center"></div>
+            </div>
+
+            <!-- Exibição e Edição da URL do QR Code -->
+            <div class="mt-4 space-y-2.5">
+              <label for="qr-url-input" class="block text-xs font-medium text-slate-300">
+                Endereço de hospedagem apontado pelo QR Code:
+              </label>
+              <div class="flex gap-2">
+                <input id="qr-url-input" type="text" class="flex-1 bg-navy-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-turquoise-400 focus:outline-none focus:border-turquoise-500" placeholder="https://..." />
+                <button onclick="updateQRCodeFromInput()" title="Atualizar QR Code" class="px-3 py-2 rounded-xl bg-navy-700 hover:bg-slate-700 text-xs font-semibold text-white border border-slate-600 transition cursor-pointer">
+                  Gerar
+                </button>
+              </div>
+
+              <div id="local-file-warning" class="hidden text-[11px] text-amber-300 bg-amber-950/50 border border-amber-700/50 rounded-xl p-2.5 leading-snug">
+                <strong>Nota:</strong> Você abriu o arquivo localmente (<code class="font-mono">file://</code>). Este arquivo ainda não está publicado. Hospede-o em um endereço HTTPS público (por exemplo, GitHub Pages) e cole o link completo acima para gerar um QR que funcione em outros aparelhos.
+              </div>
+
+              <div class="flex items-center justify-between pt-1">
+                <button onclick="copyShareUrl()" class="w-full py-2.5 px-4 rounded-xl bg-navy-900 hover:bg-navy-950 border border-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-center gap-2 transition cursor-pointer">
+                  <svg class="w-4 h-4 text-turquoise-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  <span id="copy-btn-text">Copiar Link do Jogo</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="relative z-10 text-center py-4 text-xs text-slate-400 border-t border-slate-800/80">
+      Desenvolvido para o ensino investigativo de Trigonometria • Compatível com Desktop, Tablet e Smartphone
+    </footer>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- TELA 2: AMBIENTE PRINCIPAL DO JOGO (SIMULADOR + DESAFIOS)             -->
+  <!-- ===================================================================== -->
+  <section id="screen-game" class="hidden min-h-screen flex flex-col bg-navy-950">
+    
+    <!-- Barra Superior de Status, Progresso, Pontuação e Controles -->
+    <header class="sticky top-0 z-30 bg-navy-900/95 backdrop-blur-md border-b border-slate-800 px-3 sm:px-6 py-3 shadow-lg no-print">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+        
+        <!-- Logo / Voltar -->
+        <div class="flex items-center gap-2.5">
+          <button onclick="returnToIntro()" title="Voltar à Tela Inicial" class="p-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 border border-slate-700 transition cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          </button>
+          <div>
+            <h1 class="font-bold text-sm sm:text-base text-white leading-tight">OPERAÇÃO TURBINA EÓLICA</h1>
+            <span id="mode-badge" class="text-[11px] font-mono text-turquoise-400">Modo Investigação Guiada</span>
+          </div>
+        </div>
+
+        <!-- Barra de Progresso das Etapas -->
+        <div id="progress-container" class="flex-1 max-w-md mx-2 hidden md:block">
+          <div class="flex justify-between text-xs text-slate-400 mb-1">
+            <span id="progress-label">Desafio 1 de 6</span>
+            <span id="progress-percent" class="font-mono text-turquoise-400">0%</span>
+          </div>
+          <div class="w-full h-2.5 bg-navy-950 rounded-full overflow-hidden border border-slate-800">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-turquoise-500 to-cyan-300 transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Pontuação, Medalhas e Reiniciar -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="flex items-center gap-1.5 bg-navy-950 border border-slate-800 px-3 py-1.5 rounded-xl">
+            <span class="text-amber-400 text-sm">★</span>
+            <span class="text-xs text-slate-400 hidden sm:inline">Pontos:</span>
+            <span id="score-display" class="font-mono font-bold text-sm text-white">0</span>
+          </div>
+
+          <button onclick="openBadgesModal()" class="flex items-center gap-1.5 bg-navy-800 hover:bg-navy-700 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold text-turquoise-400 transition cursor-pointer" title="Ver Medalhas Conquistadas">
+            <span>🏅</span>
+            <span id="badges-count">0/5</span>
+          </button>
+
+          <button onclick="openResetModal()" class="px-3 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-800/70 text-rose-200 text-xs font-semibold transition cursor-pointer" title="Reiniciar todo o progresso">
+            Reiniciar
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Grid Principal: Esquerda (Simulador Visual + Controles) | Direita (Técnico + Desafios) -->
+    <main class="flex-1 max-w-7xl mx-auto w-full p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      
+      <!-- ================================================================= -->
+      <!-- COLUNA ESQUERDA (7 cols): TRIÂNGULO RETÂNGULO INTERATIVO + PAINEL -->
+      <!-- ================================================================= -->
+      <div class="lg:col-span-7 space-y-4">
+        
+        <!-- Card da Cena Gráfica da Turbina Eólica e Triângulo Retângulo -->
+        <div class="bg-navy-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+          <!-- Cabeçalho do Simulador -->
+          <div class="px-4 py-3 bg-navy-800/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-turquoise-400"></span>
+              <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-200">
+                Simulador Visual — Triângulo Retângulo em Campo
+              </h2>
+            </div>
+            <div class="flex items-center gap-2 text-[11px] font-mono text-slate-300">
+              <span class="px-2 py-0.5 rounded bg-navy-950 border border-slate-700">Escala Proporcional Real</span>
+            </div>
+          </div>
+
+          <!-- Canvas Interativo Responsivo -->
+          <div id="canvas-wrapper" class="relative w-full h-[320px] sm:h-[400px] bg-gradient-to-b from-sky-900 via-sky-800 to-slate-900 select-none">
+            <canvas id="turbine-canvas" class="w-full h-full block"></canvas>
+            
+            <!-- Legenda Flutuante Compacta no Canto Superior Esquerdo -->
+            <div class="absolute top-3 left-3 bg-navy-950/85 backdrop-blur-sm border border-slate-700/80 rounded-xl p-2.5 text-[11px] space-y-1 pointer-events-none">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-1 bg-rose-400 inline-block rounded"></span>
+                <span class="text-slate-200">Cateto Oposto: <strong>Altura (h)</strong></span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-1 bg-emerald-400 inline-block rounded"></span>
+                <span class="text-slate-200">Cateto Adjacente: <strong>Distância (d)</strong></span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-1 bg-amber-400 inline-block rounded"></span>
+                <span class="text-slate-200">Hipotenusa: <strong>Cabo (c)</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visor Telemétrico Matemático em Tempo Real -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 sm:p-4 bg-navy-950/90 border-t border-slate-800">
+            <div class="bg-navy-900 border border-slate-800 rounded-xl p-2.5 text-center">
+              <span class="text-[11px] text-emerald-400 font-semibold block">Distância (d)</span>
+              <span id="telemetry-dist" class="font-mono font-bold text-base sm:text-lg text-white">40.00 m</span>
+            </div>
+            <div class="bg-navy-900 border border-slate-800 rounded-xl p-2.5 text-center">
+              <span class="text-[11px] text-turquoise-400 font-semibold block">Ângulo (θ)</span>
+              <span id="telemetry-angle" class="font-mono font-bold text-base sm:text-lg text-white">30.0°</span>
+            </div>
+            <div class="bg-navy-900 border border-rose-500/30 rounded-xl p-2.5 text-center">
+              <span class="text-[11px] text-rose-400 font-semibold block">Altura (h = d·tan θ)</span>
+              <span id="telemetry-height" class="font-mono font-bold text-base sm:text-lg text-rose-300">23.09 m</span>
+            </div>
+            <div class="bg-navy-900 border border-amber-500/30 rounded-xl p-2.5 text-center">
+              <span class="text-[11px] text-amber-400 font-semibold block">Cabo (c = d/cos θ)</span>
+              <span id="telemetry-cable" class="font-mono font-bold text-base sm:text-lg text-amber-300">46.19 m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel de Controles Interativos do Triângulo -->
+        <div class="bg-navy-900 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                <svg class="w-5 h-5 text-turquoise-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                Controles Interativos do Triângulo
+              </h3>
+              <p id="controls-hint" class="text-xs text-slate-400">Ajuste os valores abaixo e observe os cálculos trigonométricos em tempo real.</p>
+            </div>
+            
+            <!-- Botões Rápidos de Predefinição -->
+            <div class="flex items-center gap-1.5">
+              <button onclick="setTriangleValues(40, 30)" class="px-2.5 py-1 rounded-lg bg-navy-800 hover:bg-navy-700 border border-slate-700 text-[11px] font-mono text-turquoise-400 transition cursor-pointer">
+                40m | 30°
+              </button>
+              <button onclick="setTriangleValues(25, 30)" class="px-2.5 py-1 rounded-lg bg-navy-800 hover:bg-navy-700 border border-slate-700 text-[11px] font-mono text-slate-300 transition cursor-pointer">
+                25m | 30°
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Controle 1: Distância (d) -->
+            <div id="control-box-dist" class="bg-navy-950/80 border border-slate-800 rounded-2xl p-3.5 space-y-2 transition-opacity">
+              <div class="flex items-center justify-between">
+                <label for="input-dist" class="text-xs font-bold text-emerald-400">Distância (d)</label>
+                <div class="flex items-center gap-1">
+                  <input id="input-dist" type="number" min="10" max="120" step="1" value="40" class="w-16 bg-navy-900 border border-slate-700 rounded-lg px-2 py-1 text-right font-mono text-xs text-white focus:outline-none focus:border-emerald-400">
+                  <span class="text-xs text-slate-400 font-mono">m</span>
+                </div>
+              </div>
+              <input id="slider-dist" type="range" min="10" max="120" step="1" value="40" class="w-full">
+              <div class="flex justify-between text-[10px] font-mono text-slate-500">
+                <span>10 m</span>
+                <span>65 m</span>
+                <span>120 m</span>
+              </div>
+            </div>
+
+            <!-- Controle 2: Ângulo de Elevação (θ) -->
+            <div id="control-box-angle" class="bg-navy-950/80 border border-slate-800 rounded-2xl p-3.5 space-y-2 transition-opacity">
+              <div class="flex items-center justify-between">
+                <label for="input-angle" class="text-xs font-bold text-turquoise-400">Ângulo (θ)</label>
+                <div class="flex items-center gap-1">
+                  <input id="input-angle" type="number" min="10" max="75" step="0.5" value="30" class="w-16 bg-navy-900 border border-slate-700 rounded-lg px-2 py-1 text-right font-mono text-xs text-white focus:outline-none focus:border-turquoise-400">
+                  <span class="text-xs text-slate-400 font-mono">°</span>
+                </div>
+              </div>
+              <input id="slider-angle" type="range" min="10" max="75" step="1" value="30" class="w-full">
+              <div class="flex justify-between text-[10px] font-mono text-slate-500">
+                <span>10°</span>
+                <span>45°</span>
+                <span>75°</span>
+              </div>
+            </div>
+
+            <!-- Controle 3: Altura Conhecida (h) -> Recalcula Ângulo θ = arctan(h/d) -->
+            <div id="control-box-height" class="bg-navy-950/80 border border-slate-800 rounded-2xl p-3.5 space-y-2 transition-opacity">
+              <div class="flex items-center justify-between">
+                <label for="input-height" class="text-xs font-bold text-rose-400" title="Ao editar a altura, o ângulo θ é recalculado via arctan(h/d)">Altura (h)</label>
+                <div class="flex items-center gap-1">
+                  <input id="input-height" type="number" min="5" max="150" step="0.1" value="23.09" class="w-16 bg-navy-900 border border-slate-700 rounded-lg px-2 py-1 text-right font-mono text-xs text-white focus:outline-none focus:border-rose-400">
+                  <span class="text-xs text-slate-400 font-mono">m</span>
+                </div>
+              </div>
+              <input id="slider-height" type="range" min="5" max="120" step="0.5" value="23.1" class="w-full">
+              <div class="text-[10px] text-slate-400 leading-tight">
+                Editar <span class="text-rose-400 font-mono">h</span> calcula <span class="font-mono text-turquoise-400">θ = arctan(h/d)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Painel de Razões Trigonométricas Instantâneas -->
+          <div class="bg-navy-950/60 border border-slate-800/80 rounded-2xl p-3 flex flex-wrap items-center justify-around gap-3 text-xs font-mono">
+            <div>
+              <span class="text-slate-400">sen(<span class="val-theta">30</span>°) = </span>
+              <span id="ratio-sin" class="text-slate-100 font-bold">0.5000</span>
+            </div>
+            <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+            <div>
+              <span class="text-slate-400">cos(<span class="val-theta">30</span>°) = </span>
+              <span id="ratio-cos" class="text-amber-400 font-bold">0.8660</span>
+            </div>
+            <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+            <div>
+              <span class="text-slate-400">tan(<span class="val-theta">30</span>°) = </span>
+              <span id="ratio-tan" class="text-rose-400 font-bold">0.5774</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- COLUNA DIREITA (5 cols): PERSONAGEM INTERATIVO + DESAFIO ATUAL    -->
+      <!-- ================================================================= -->
+      <div class="lg:col-span-5 space-y-4">
+        
+        <!-- Card do Personagem Técnico de Manutenção + Balão de Fala -->
+        <div class="bg-gradient-to-br from-navy-800 to-navy-900 border border-turquoise-500/30 rounded-3xl p-4 shadow-xl">
+          <div class="flex items-start gap-3.5">
+            <!-- Avatar SVG Animado do Técnico Eólico -->
+            <div id="character-container" class="w-20 h-20 sm:w-24 sm:h-24 shrink-0 bg-navy-950/80 rounded-2xl border border-slate-700/80 flex items-center justify-center overflow-hidden char-idle">
+              <svg id="engineer-svg" viewBox="0 0 120 120" class="w-full h-full">
+                <!-- Fundo céu técnico -->
+                <circle cx="60" cy="60" r="54" fill="#0f294a" />
+                <!-- Corpo / Uniforme de Engenharia -->
+                <path d="M25 118 C25 90, 95 90, 95 118 Z" fill="#0284c7" />
+                <!-- Faixas refletivas de segurança -->
+                <rect x="40" y="96" width="7" height="22" fill="#facc15" />
+                <rect x="73" y="96" width="7" height="22" fill="#facc15" />
+                <rect x="33" y="106" width="54" height="5" fill="#e2e8f0" />
+                <!-- Pescoço -->
+                <rect x="52" y="76" width="16" height="16" rx="6" fill="#f1c27d" />
+                <!-- Cabeça -->
+                <rect x="38" y="36" width="44" height="46" rx="20" fill="#f1c27d" />
+                <!-- Orelhas -->
+                <circle cx="37" cy="60" r="5" fill="#e0ac69" />
+                <circle cx="83" cy="60" r="5" fill="#e0ac69" />
+                <!-- Óculos de Proteção Transparentes -->
+                <rect x="41" y="51" width="17" height="11" rx="3" fill="#e0f2fe" fill-opacity="0.45" stroke="#00d2d3" stroke-width="2" />
+                <rect x="62" y="51" width="17" height="11" rx="3" fill="#e0f2fe" fill-opacity="0.45" stroke="#00d2d3" stroke-width="2" />
+                <line x1="58" y1="56" x2="62" y2="56" stroke="#00d2d3" stroke-width="2" />
+                <!-- Olhos (Expressões dinâmicas) -->
+                <g id="face-eyes">
+                  <circle cx="49.5" cy="56.5" r="2.5" fill="#0f172a" />
+                  <circle cx="70.5" cy="56.5" r="2.5" fill="#0f172a" />
+                </g>
+                <!-- Sobrancelhas -->
+                <g id="face-brows" stroke="#475569" stroke-width="2" stroke-linecap="round">
+                  <line x1="45" y1="48" x2="54" y2="48" />
+                  <line x1="66" y1="48" x2="75" y2="48" />
+                </g>
+                <!-- Boca (Expressões dinâmicas) -->
+                <path id="face-mouth" d="M52 69 Q60 75 68 69" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" />
+                <!-- Capacete de Segurança Amarelo -->
+                <path d="M33 43 C33 20, 87 20, 87 43 Z" fill="#facc15" />
+                <rect x="28" y="41" width="64" height="5" rx="2.5" fill="#eab308" />
+                <!-- Emblema eólico no capacete -->
+                <circle cx="60" cy="30" r="5" fill="#0a192f" />
+                <circle cx="60" cy="30" r="2" fill="#00d2d3" />
+                <!-- Estrelas de comemoração (ocultas por padrão) -->
+                <g id="face-stars" class="hidden">
+                  <text x="12" y="30" font-size="16">✨</text>
+                  <text x="92" y="28" font-size="16">⭐</text>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Balão de Fala Interativo -->
+            <div class="flex-1 bg-navy-950/90 border border-slate-700/90 rounded-2xl p-3.5 relative">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold text-turquoise-400">Eng. Lucas • Técnico de Campo</span>
+                <span id="speech-mood-tag" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-turquoise-500/15 text-turquoise-300">Orientando</span>
+              </div>
+              <p id="character-speech" class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                Olá! Estou posicionado a 40 metros da turbina e medindo um ângulo de 30° até o topo. Vamos calcular a altura usando a tangente!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card do Desafio Investigativo Atual (Modo Campanha) -->
+        <div id="challenge-card" class="bg-navy-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+          <!-- Navegação rápida entre etapas concluídas/atuais -->
+          <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <span id="challenge-badge" class="px-3 py-1 rounded-full bg-turquoise-500/20 text-turquoise-400 font-mono font-bold text-xs">
+              DESAFIO 1 / 6
+            </span>
+            <div id="step-dots" class="flex items-center gap-1.5">
+              <!-- Preenchido via JS -->
+            </div>
+          </div>
+
+          <!-- Título e Enunciado do Desafio -->
+          <div>
+            <h2 id="challenge-title" class="text-lg sm:text-xl font-extrabold text-white mb-1.5">
+              Investigação da Altura da Turbina
+            </h2>
+            <p id="challenge-desc" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              O técnico está a 40 metros da base da turbina e observa o topo com um ângulo de elevação de 30°.
+            </p>
+          </div>
+
+          <!-- Formulário Dinâmico das Perguntas do Desafio -->
+          <div id="challenge-questions" class="space-y-4">
+            <!-- Renderizado dinamicamente conforme a etapa -->
+          </div>
+
+          <!-- Área de Feedback Imediato -->
+          <div id="feedback-box" class="hidden rounded-2xl p-3.5 text-xs sm:text-sm leading-relaxed border"></div>
+
+          <!-- Botões de Ação do Desafio -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
+            <button id="btn-prev-step" onclick="prevChallenge()" class="hidden px-4 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 text-xs font-semibold border border-slate-700 transition cursor-pointer">
+              ← Anterior
+            </button>
+            
+            <div class="flex items-center gap-2 ml-auto w-full sm:w-auto justify-end">
+              <button id="btn-verify" onclick="verifyCurrentChallenge()" class="flex-1 sm:flex-initial px-6 py-3 rounded-xl bg-gradient-to-r from-turquoise-500 to-cyan-400 hover:from-turquoise-400 hover:to-cyan-300 text-navy-950 font-bold text-sm shadow-lg shadow-turquoise-500/20 transition cursor-pointer">
+                Verificar Resposta
+              </button>
+              <button id="btn-next-step" onclick="nextChallenge()" class="hidden flex-1 sm:flex-initial px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-navy-950 font-bold text-sm shadow-lg transition cursor-pointer">
+                Próximo Desafio →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Exclusivo do Modo Laboratório Livre -->
+        <div id="sandbox-card" class="hidden bg-navy-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 rounded-full bg-turquoise-500/20 text-turquoise-400 font-mono font-bold text-xs">
+              LABORATÓRIO LIVRE
+            </span>
+            <button onclick="switchToCampaign()" class="text-xs font-semibold text-turquoise-400 hover:underline cursor-pointer">
+              Ir para os Desafios Guiados →
+            </button>
+          </div>
+          <h2 class="text-lg font-bold text-white">Exploração Livre de Trigonometria</h2>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Todos os controles estão liberados! Teste diferentes distâncias (<span class="font-mono text-emerald-400">d</span>), ângulos (<span class="font-mono text-turquoise-400">θ</span>) ou defina uma altura conhecida (<span class="font-mono text-rose-400">h</span>) para observar como seno, cosseno e tangente se comportam na prática.
+          </p>
+          <div class="bg-navy-950 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs text-slate-300">
+            <div class="font-bold text-turquoise-400">Sugestões de Experimentos:</div>
+            <ul class="list-disc list-inside space-y-1.5 text-slate-300">
+              <li>Fixe o ângulo em <strong>45°</strong>: observe que a altura fica exatamente igual à distância (<span class="font-mono">tan 45° = 1</span>).</li>
+              <li>Dobre a distância de <strong>30 m</strong> para <strong>60 m</strong> mantendo <strong>30°</strong>: observe que tanto a altura quanto o cabo dobram proporcionalmente.</li>
+              <li>Aumente o ângulo de <strong>30°</strong> para <strong>60°</strong>: note como a altura triplica (<span class="font-mono">tan 60° = 3·tan 30°</span>).</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- TELA 3: CONCLUSÃO, MEDALHAS E RELATÓRIO INVESTIGATIVO                 -->
+  <!-- ===================================================================== -->
+  <section id="screen-summary" class="hidden min-h-screen bg-navy-950 py-8 px-4 sm:px-6">
+    <div class="max-w-4xl mx-auto space-y-6">
+      
+      <!-- Cabeçalho de Parabéns -->
+      <div class="bg-gradient-to-r from-navy-900 via-navy-800 to-navy-900 border border-turquoise-500/40 rounded-3xl p-6 sm:p-8 text-center shadow-2xl print-only-clean">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-turquoise-500/20 text-3xl mb-3 border border-turquoise-500/40">
+          🏆
+        </div>
+        <h1 class="text-2xl sm:text-4xl font-extrabold text-white mb-2">
+          Operação Concluída com Sucesso!
+        </h1>
+        <p class="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto">
+          Parabéns! Você concluiu todas as etapas investigativas da <strong>Operação Turbina Eólica</strong>, aplicando trigonometria real para análise estrutural e segurança em campo.
+        </p>
+
+        <!-- Placar Final -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-xl mx-auto mt-6">
+          <div class="bg-navy-950/90 border border-slate-800 rounded-2xl p-4">
+            <span class="text-xs text-slate-400 block">Pontuação Total</span>
+            <span id="final-score" class="font-mono font-extrabold text-2xl sm:text-3xl text-turquoise-400">600</span>
+          </div>
+          <div class="bg-navy-950/90 border border-slate-800 rounded-2xl p-4">
+            <span class="text-xs text-slate-400 block">Desafios Concluídos</span>
+            <span class="font-mono font-extrabold text-2xl sm:text-3xl text-emerald-400">6 / 6</span>
+          </div>
+          <div class="col-span-2 sm:col-span-1 bg-navy-950/90 border border-slate-800 rounded-2xl p-4">
+            <span class="text-xs text-slate-400 block">Medalhas</span>
+            <span id="final-badges-count" class="font-mono font-extrabold text-2xl sm:text-3xl text-amber-400">5 / 5</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quadro de Medalhas Conquistadas -->
+      <div class="bg-navy-900 border border-slate-800 rounded-3xl p-6 shadow-xl print-only-clean">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <span>🏅</span> Medalhas de Engenharia Conquistadas
+        </h2>
+        <div id="final-badges-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+
+      <!-- Relatório Completo das Respostas e Análises do Aluno -->
+      <div class="bg-navy-900 border border-slate-800 rounded-3xl p-6 shadow-xl print-only-clean">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white">Relatório Investigativo do Aluno</h2>
+            <p class="text-xs text-slate-400">Registro consolidado dos cálculos e justificativas matemáticas</p>
+          </div>
+          <div class="flex items-center gap-2 no-print">
+            <input id="student-name-input" type="text" placeholder="Digite seu nome completo..." class="bg-navy-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-turquoise-400" />
+            <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-turquoise-500 hover:bg-turquoise-400 text-navy-950 font-bold text-xs transition cursor-pointer">
+              Imprimir / Salvar PDF
+            </button>
+          </div>
+        </div>
+
+        <div id="report-answers-list" class="space-y-4">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+
+      <!-- Botões Finais -->
+      <div class="flex flex-wrap items-center justify-center gap-4 pb-8 no-print">
+        <button onclick="backToGameReview()" class="px-6 py-3 rounded-2xl bg-navy-800 hover:bg-navy-700 border border-slate-700 text-sm font-semibold text-white transition cursor-pointer">
+          Voltar ao Simulador
+        </button>
+        <button onclick="resetEntireGame()" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-turquoise-500 to-cyan-400 hover:from-turquoise-400 hover:to-cyan-300 text-navy-950 font-bold text-sm shadow-lg transition cursor-pointer">
+          Reiniciar Nova Missão
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL DE MEDALHAS & MODAL DE CONFIRMAÇÃO DE REINÍCIO                  -->
+  <!-- ===================================================================== -->
+  <div id="modal-overlay" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="modal-content" class="bg-navy-900 border border-slate-700 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <!-- Conteúdo dinâmico do modal -->
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- LÓGICA JAVASCRIPT COMPLETA                                            -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * ESTADO GLOBAL DA APLICAÇÃO
+     */
+    const state = {
+      mode: 'campaign', // 'campaign' | 'sandbox'
+      currentStep: 0,   // 0 a 5 (6 desafios)
+      score: 0,
+      completedSteps: [false, false, false, false, false, false],
+      // Valores geométricos do triângulo retângulo
+      distance: 40,     // metros (cateto adjacente)
+      angleDeg: 30,     // graus (ângulo de elevação)
+      height: 40 * Math.tan(30 * Math.PI / 180), // metros (cateto oposto)
+      cable: 40 / Math.cos(30 * Math.PI / 180),  // metros (hipotenusa)
+      // Animação do rotor da turbina no canvas
+      rotorAngle: 0,
+      // Armazenamento das respostas do aluno
+      responses: {
+        0: { heightInput: '', relation: '', explanation: '' },
+        1: { cableInput: '', whyCosine: '', practicalFactors: '' },
+        2: { heightPattern: '', cablePattern: '', generalRule: '' },
+        3: { angleIncrease: '', angleDecrease: '', cableEffect: '' },
+        4: { h25: '', c40: '', c25: '', c40Reserve: '', c25Reserve: '', conclusion: '' },
+        5: { chosenDist: 40, chosenAngle: 30, calcHeight: '', calcCable: '', justification: '' }
+      },
+      badges: [
+        { id: 'tangent', name: 'Mestre da Tangente', desc: 'Calculou com precisão a altura da turbina usando a tangente.', icon: '📐', unlocked: false },
+        { id: 'cable', name: 'Especialista em Cabos', desc: 'Dimensionou corretamente o cabo de segurança pela hipotenusa.', icon: '🔗', unlocked: false },
+        { id: 'proportional', name: 'Analista de Proporções', desc: 'Investigou o impacto da distância e do ângulo no triângulo.', icon: '📊', unlocked: false },
+        { id: 'safety', name: 'Engenheiro de Segurança', desc: 'Avaliou incertezas de medição e margem técnica de 10%.', icon: '🦺', unlocked: false },
+        { id: 'senior', name: 'Engenheiro Eólico Sênior', desc: 'Concluiu a missão autônoma com cálculos próprios validados.', icon: '🏆', unlocked: false }
+      ]
+    };
+
+    /**
+     * DEFINIÇÃO DOS 6 DESAFIOS INVESTIGATIVOS
+     */
+    const CHALLENGES = [
+      {
+        id: 1,
+        badgeTitle: 'DESAFIO 1 / 6',
+        title: 'Investigação da Altura da Turbina',
+        desc: 'O técnico está posicionado a 40 metros da base da turbina e observa o topo da nacele com um ângulo de elevação de 30°. Utilize o simulador e a trigonometria para descobrir a altura da torre.',
+        lockControls: { dist: false, angle: false, height: true },
+        preset: { dist: 40, angle: 30 },
+        speechInit: 'Estou a 40 m da base e o clinômetro marca 30°. Observe o triângulo à esquerda: conhecemos o cateto adjacente e queremos o cateto oposto (altura)!',
+        badgeId: 'tangent'
+      },
+      {
+        id: 2,
+        badgeTitle: 'DESAFIO 2 / 6',
+        title: 'Comprimento do Cabo de Segurança',
+        desc: 'Mantendo a posição a 40 metros da base e ângulo de 30°, a equipe precisa esticar um cabo de aço da posição do técnico até o topo da turbina.',
+        lockControls: { dist: false, angle: false, height: true },
+        preset: { dist: 40, angle: 30 },
+        speechInit: 'Agora precisamos dimensionar o cabo de segurança (a hipotenusa do nosso triângulo). Qual relação trigonométrica conecta o cateto adjacente à hipotenusa?',
+        badgeId: 'cable'
+      },
+      {
+        id: 3,
+        badgeTitle: 'DESAFIO 3 / 6',
+        title: 'Mudando a Posição do Técnico',
+        desc: 'Use o controle de Distância (d) no painel à esquerda para afastar ou aproximar o técnico da turbina, mantendo o ângulo de elevação constante (por exemplo, em 30°). Observe o que acontece!',
+        lockControls: { dist: false, angle: false, height: false },
+        preset: null,
+        speechInit: 'Experimente arrastar o controle de Distância (d) mantendo o ângulo fixo! Observe como a altura e o comprimento do cabo variam proporcionalmente.',
+        badgeId: null
+      },
+      {
+        id: 4,
+        badgeTitle: 'DESAFIO 4 / 6',
+        title: 'Mudando o Ângulo de Elevação',
+        desc: 'Agora experimente alterar o controle de Ângulo (θ) no painel à esquerda mantendo uma distância fixa (ex: 40 m). Analise o comportamento da altura e do cabo.',
+        lockControls: { dist: false, angle: false, height: false },
+        preset: null,
+        speechInit: 'Mude o ângulo de elevação (θ) no simulador! Repare como a altura cresce cada vez mais rápido quando o ângulo se aproxima de 70°.',
+        badgeId: 'proportional'
+      },
+      {
+        id: 5,
+        badgeTitle: 'DESAFIO EXTRA / 6',
+        title: 'Planejamento, Incerteza e Reserva Técnica',
+        desc: 'Compare o ponto original (40 m da turbina com leitura de 30°) com um novo ponto de observação mais próximo, a 25 m da base, onde o operador registrou o mesmo ângulo de 30°. Calcule os valores para ambas as situações e inclua uma reserva de segurança de +10% no cabo.',
+        lockControls: { dist: false, angle: false, height: false },
+        preset: { dist: 25, angle: 30 },
+        speechInit: 'Atenção, engenheiro! Teste 40 m (30°) e depois 25 m (30°) no simulador. Compare as alturas obtidas e calcule os cabos com +10% de reserva!',
+        badgeId: 'safety'
+      },
+      {
+        id: 6,
+        badgeTitle: 'ETAPA FINAL / 6',
+        title: 'Missão Autônoma do Engenheiro',
+        desc: 'Agora é sua vez de liderar a medição! Escolha uma distância personalizada (d) e um ângulo de elevação (θ) diferentes de 40 m / 30° nos controles do triângulo, realize os cálculos trigonométricos e valide seu projeto.',
+        lockControls: { dist: false, angle: false, height: false },
+        preset: { dist: 50, angle: 40 },
+        speechInit: 'Escolha sua própria configuração de distância e ângulo nos controles! Depois, calcule a altura e o cabo e registre sua justificativa matemática.',
+        badgeId: 'senior'
+      }
+    ];
+
+    /**
+     * INICIALIZAÇÃO DA PÁGINA E QR CODE REAL
+     */
+    window.onload = function () {
+      initQRCode();
+      bindTriangleControls();
+      updateCalculationsFromDistAngle(40, 30);
+      renderChallengeStep();
+      startCanvasLoop();
+    };
+
+    /**
+     * 1. GERAÇÃO DINÂMICA DO QR CODE APONTANDO PARA O ENDEREÇO REAL DE HOSPEDAGEM
+     */
+    function isPublicHttpUrl(value) {
+      try { const u = new URL(value); return (u.protocol === 'https:' || u.protocol === 'http:') && !['localhost','127.0.0.1','0.0.0.0'].includes(u.hostname); }
+      catch (_) { return false; }
+    }
+
+    function initQRCode() {
+      const inputEl = document.getElementById('qr-url-input');
+      const warningEl = document.getElementById('local-file-warning');
+      const params = new URLSearchParams(window.location.search);
+      const fromQuery = params.get('url');
+      const stored = localStorage.getItem('operacao-turbina-public-url');
+      const isLocal = ['file:', 'blob:'].includes(window.location.protocol) || ['localhost','127.0.0.1'].includes(window.location.hostname);
+      const current = isPublicHttpUrl(window.location.href) ? window.location.href : '';
+      const target = (fromQuery && isPublicHttpUrl(fromQuery)) ? fromQuery : ((stored && isPublicHttpUrl(stored)) ? stored : current);
+      inputEl.value = target;
+      if (isLocal || !target) warningEl.classList.remove('hidden');
+      else warningEl.classList.add('hidden');
+      if (target) generateQRCodeCanvas(target);
+      else document.getElementById('qrcode-container').innerHTML = '<div class="w-44 h-44 flex items-center justify-center text-center text-xs text-slate-600">Publique o jogo e informe aqui a URL HTTPS para criar um QR funcional.</div>';
+    }
+
+    function generateQRCodeCanvas(urlText) {
+      const container = document.getElementById('qrcode-container');
+      const targetUrl = (urlText || '').trim();
+      container.innerHTML = '';
+      if (!isPublicHttpUrl(targetUrl)) {
+        container.innerHTML = '<div class="w-44 h-44 flex items-center justify-center text-center text-xs text-rose-700">Informe uma URL pública HTTP/HTTPS válida (não use file:// ou localhost).</div>';
+        return false;
+      }
+      try {
+        if (typeof QRCode === 'undefined') throw new Error('Biblioteca QR indisponível');
+        new QRCode(container, { text: targetUrl, width: 176, height: 176, colorDark: '#071b2d', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+        return true;
+      } catch (err) {
+        container.innerHTML = '<p class="text-xs text-rose-600 p-4 text-center">Não foi possível gerar o QR. Verifique sua conexão com a internet e tente novamente.</p>';
+        return false;
+      }
+    }
+
+    function updateQRCodeFromInput() {
+      const inputEl = document.getElementById('qr-url-input');
+      const val = inputEl.value.trim();
+      if (generateQRCodeCanvas(val)) {
+        localStorage.setItem('operacao-turbina-public-url', val);
+        document.getElementById('local-file-warning').classList.add('hidden');
+      }
+    }
+
+    async function copyShareUrl() {
+      const inputEl = document.getElementById('qr-url-input');
+      const val = inputEl.value.trim();
+      const btnText = document.getElementById('copy-btn-text');
+      if (!isPublicHttpUrl(val)) { btnText.textContent = 'Informe uma URL pública primeiro'; setTimeout(() => btnText.textContent = 'Copiar Link do Jogo', 2200); return; }
+      try { await navigator.clipboard.writeText(val); }
+      catch (_) { inputEl.focus(); inputEl.select(); inputEl.setSelectionRange(0, 99999); document.execCommand('copy'); }
+      btnText.textContent = 'Link copiado!';
+      setTimeout(() => { btnText.textContent = 'Copiar Link do Jogo'; }, 2000);
+    }
+
+    /**
+     * NAVEGAÇÃO ENTRE TELAS
+     */
+    function startGame(selectedMode) {
+      state.mode = selectedMode;
+      document.getElementById('screen-intro').classList.add('hidden');
+      document.getElementById('screen-summary').classList.add('hidden');
+      document.getElementById('screen-game').classList.remove('hidden');
+
+      if (selectedMode === 'sandbox') {
+        document.getElementById('mode-badge').textContent = 'Modo Laboratório Livre';
+        document.getElementById('progress-container').classList.add('hidden');
+        document.getElementById('challenge-card').classList.add('hidden');
+        document.getElementById('sandbox-card').classList.remove('hidden');
+        setCharacterState('neutral', 'Bem-vindo ao Laboratório Livre! Ajuste qualquer lado ou ângulo do triângulo para investigar as relações trigonométricas.', 'Explorando');
+      } else {
+        document.getElementById('mode-badge').textContent = 'Modo Investigação Guiada';
+        document.getElementById('progress-container').classList.remove('hidden');
+        document.getElementById('challenge-card').classList.remove('hidden');
+        document.getElementById('sandbox-card').classList.add('hidden');
+        renderChallengeStep();
+      }
+      resizeCanvas();
+    }
+
+    function switchToCampaign() {
+      startGame('campaign');
+    }
+
+    function returnToIntro() {
+      document.getElementById('screen-game').classList.add('hidden');
+      document.getElementById('screen-summary').classList.add('hidden');
+      document.getElementById('screen-intro').classList.remove('hidden');
+    }
+
+    function backToGameReview() {
+      document.getElementById('screen-summary').classList.add('hidden');
+      document.getElementById('screen-game').classList.remove('hidden');
+      resizeCanvas();
+    }
+
+    /**
+     * 2. CONTROLE DE EXPRESSÕES E BALÃO DO PERSONAGEM TÉCNICO
+     */
+    function setCharacterState(mood, message, tagText) {
+      const container = document.getElementById('character-container');
+      const mouth = document.getElementById('face-mouth');
+      const brows = document.getElementById('face-brows');
+      const stars = document.getElementById('face-stars');
+      const speechEl = document.getElementById('character-speech');
+      const tagEl = document.getElementById('speech-mood-tag');
+
+      container.classList.remove('char-idle', 'char-celebrate', 'char-alert');
+      stars.classList.add('hidden');
+
+      if (mood === 'celebrate') {
+        container.classList.add('char-celebrate');
+        mouth.setAttribute('d', 'M50 67 Q60 79 70 67 Z');
+        brows.innerHTML = '<line x1="45" y1="46" x2="54" y2="48" /><line x1="66" y1="48" x2="75" y2="46" />';
+        stars.classList.remove('hidden');
+        tagEl.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300';
+      } else if (mood === 'alert') {
+        container.classList.add('char-alert');
+        mouth.setAttribute('d', 'M52 73 Q60 67 68 73');
+        brows.innerHTML = '<line x1="45" y1="49" x2="54" y2="46" /><line x1="66" y1="46" x2="75" y2="49" />';
+        tagEl.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300';
+      } else {
+        container.classList.add('char-idle');
+        mouth.setAttribute('d', 'M52 69 Q60 75 68 69');
+        brows.innerHTML = '<line x1="45" y1="48" x2="54" y2="48" /><line x1="66" y1="48" x2="75" y2="48" />';
+        tagEl.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-turquoise-500/15 text-turquoise-300';
+      }
+
+      if (message) speechEl.textContent = message;
+      if (tagText) tagEl.textContent = tagText;
+    }
+
+    /**
+     * 3. CÁLCULOS TRIGONOMÉTRICOS EM TEMPO REAL E SINCRONIZAÇÃO DE CONTROLES
+     */
+    function bindTriangleControls() {
+      const sliderDist = document.getElementById('slider-dist');
+      const inputDist = document.getElementById('input-dist');
+      const sliderAngle = document.getElementById('slider-angle');
+      const inputAngle = document.getElementById('input-angle');
+      const sliderHeight = document.getElementById('slider-height');
+      const inputHeight = document.getElementById('input-height');
+
+      sliderDist.addEventListener('input', (e) => {
+        const d = parseFloat(e.target.value);
+        updateCalculationsFromDistAngle(d, state.angleDeg);
+      });
+      inputDist.addEventListener('change', (e) => {
+        let d = Math.max(10, Math.min(120, parseFloat(e.target.value) || 40));
+        updateCalculationsFromDistAngle(d, state.angleDeg);
+      });
+
+      sliderAngle.addEventListener('input', (e) => {
+        const a = parseFloat(e.target.value);
+        updateCalculationsFromDistAngle(state.distance, a);
+      });
+      inputAngle.addEventListener('change', (e) => {
+        let a = Math.max(10, Math.min(75, parseFloat(e.target.value) || 30));
+        updateCalculationsFromDistAngle(state.distance, a);
+      });
+
+      sliderHeight.addEventListener('input', (e) => {
+        const h = parseFloat(e.target.value);
+        updateCalculationsFromDistHeight(state.distance, h);
+      });
+      inputHeight.addEventListener('change', (e) => {
+        let h = Math.max(5, Math.min(200, parseFloat(e.target.value) || 23.09));
+        updateCalculationsFromDistHeight(state.distance, h);
+      });
+    }
+
+    function setTriangleValues(dist, angleDeg) {
+      updateCalculationsFromDistAngle(dist, angleDeg);
+    }
+
+    function updateCalculationsFromDistAngle(dist, angleDeg) {
+      const rad = (angleDeg * Math.PI) / 180;
+      const height = dist * Math.tan(rad);
+      const cable = dist / Math.cos(rad);
+
+      state.distance = dist;
+      state.angleDeg = angleDeg;
+      state.height = height;
+      state.cable = cable;
+
+      syncUIControls();
+    }
+
+    function updateCalculationsFromDistHeight(dist, height) {
+      // Ângulo = arctangente(altura / distância)
+      const rad = Math.atan(height / dist);
+      let angleDeg = (rad * 180) / Math.PI;
+      angleDeg = Math.max(5, Math.min(82, angleDeg));
+
+      const finalRad = (angleDeg * Math.PI) / 180;
+      const finalHeight = dist * Math.tan(finalRad);
+      const cable = dist / Math.cos(finalRad);
+
+      state.distance = dist;
+      state.angleDeg = angleDeg;
+      state.height = finalHeight;
+      state.cable = cable;
+
+      syncUIControls();
+    }
+
+    function syncUIControls() {
+      const d = state.distance;
+      const a = state.angleDeg;
+      const h = state.height;
+      const c = state.cable;
+      const rad = (a * Math.PI) / 180;
+
+      // Inputs e Sliders
+      document.getElementById('slider-dist').value = d;
+      document.getElementById('input-dist').value = d.toFixed(0);
+
+      document.getElementById('slider-angle').value = a;
+      document.getElementById('input-angle').value = a.toFixed(1).replace('.0', '');
+
+      document.getElementById('slider-height').value = Math.min(120, h);
+      document.getElementById('input-height').value = h.toFixed(2);
+
+      // Visor Telemétrico
+      document.getElementById('telemetry-dist').textContent = `${d.toFixed(2)} m`;
+      document.getElementById('telemetry-angle').textContent = `${a.toFixed(1)}°`;
+      document.getElementById('telemetry-height').textContent = `${h.toFixed(2)} m`;
+      document.getElementById('telemetry-cable').textContent = `${c.toFixed(2)} m`;
+
+      // Razões Trigonométricas
+      document.querySelectorAll('.val-theta').forEach(el => el.textContent = a.toFixed(1).replace('.0', ''));
+      document.getElementById('ratio-sin').textContent = Math.sin(rad).toFixed(4);
+      document.getElementById('ratio-cos').textContent = Math.cos(rad).toFixed(4);
+      document.getElementById('ratio-tan').textContent = Math.tan(rad).toFixed(4);
+
+      // Atualiza exibição na Etapa 6 se estiver ativa
+      if (state.currentStep === 5 && state.mode === 'campaign') {
+        const liveDistEl = document.getElementById('step6-live-dist');
+        const liveAngleEl = document.getElementById('step6-live-angle');
+        if (liveDistEl) liveDistEl.textContent = `${d.toFixed(1)} m`;
+        if (liveAngleEl) liveAngleEl.textContent = `${a.toFixed(1)}°`;
+      }
+    }
+
+    /**
+     * 4. RENDERIZAÇÃO GRÁFICA DE ALTA PRECISÃO (CANVAS RESPONSIVO)
+     * Desenha a paisagem, a turbina eólica com pás girando, o técnico e o triângulo retângulo proporcional.
+     */
+    const canvas = document.getElementById('turbine-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      const wrapper = document.getElementById('canvas-wrapper');
+      if (!wrapper) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = wrapper.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function startCanvasLoop() {
+      resizeCanvas();
+      function frame() {
+        state.rotorAngle += 0.018;
+        drawScene();
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function drawScene() {
+      const wrapper = document.getElementById('canvas-wrapper');
+      if (!wrapper || wrapper.offsetParent === null) return;
+
+      const W = wrapper.clientWidth;
+      const H = wrapper.clientHeight;
+      ctx.clearRect(0, 0, W, H);
+
+      // 1. Céu e Horizonte
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+      skyGrad.addColorStop(0, '#07162b');
+      skyGrad.addColorStop(0.65, '#0e345a');
+      skyGrad.addColorStop(1, '#164e63');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Grade sutil de engenharia no fundo
+      ctx.strokeStyle = 'rgba(0, 210, 211, 0.06)';
+      ctx.lineWidth = 1;
+      const gridStep = 36;
+      for (let gx = 0; gx < W; gx += gridStep) {
+        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+      }
+      for (let gy = 0; gy < H; gy += gridStep) {
+        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+      }
+
+      const groundY = H - 46;
+
+      // Montanhas ao fundo
+      ctx.fillStyle = 'rgba(10, 25, 47, 0.55)';
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.quadraticCurveTo(W * 0.25, groundY - 75, W * 0.55, groundY - 25);
+      ctx.quadraticCurveTo(W * 0.8, groundY - 85, W, groundY - 30);
+      ctx.lineTo(W, groundY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Solo / Terreno de Engenharia
+      const groundGrad = ctx.createLinearGradient(0, groundY, 0, H);
+      groundGrad.addColorStop(0, '#0f293a');
+      groundGrad.addColorStop(1, '#06101f');
+      ctx.fillStyle = groundGrad;
+      ctx.fillRect(0, groundY, W, H - groundY);
+
+      ctx.strokeStyle = '#00d2d3';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.lineTo(W, groundY);
+      ctx.stroke();
+
+      // 2. Cálculo de Escala Matemática Proporcional
+      // Margens seguras para caber o técnico à esquerda, turbina à direita e pás no topo
+      const marginLeft = Math.max(54, W * 0.11);
+      const marginRight = Math.max(70, W * 0.16);
+      const marginTop = 64;
+
+      const availW = W - marginLeft - marginRight;
+      const availH = groundY - marginTop;
+
+      const d = state.distance;
+      const h = state.height;
+
+      // Escala uniforme (pixels por metro) para garantir proporção real sem distorção!
+      const scaleX = availW / Math.max(d, 10);
+      const scaleY = availH / Math.max(h, 10);
+      const pxPerMeter = Math.min(scaleX, scaleY);
+
+      const triWidthPx = d * pxPerMeter;
+      const triHeightPx = h * pxPerMeter;
+
+      // Posição da base da turbina (vértice do ângulo reto) e do técnico (vértice do ângulo θ)
+      const turbineBaseX = W - marginRight;
+      const techX = turbineBaseX - triWidthPx;
+      const turbineTopY = groundY - triHeightPx;
+
+      // 3. Desenho da Turbina Eólica na posição exata (turbineBaseX, turbineTopY)
+      drawWindTurbine(turbineBaseX, groundY, turbineTopY, triHeightPx);
+
+      // 4. Desenho do Triângulo Retângulo Interativo
+      // Preenchimento translúcido do triângulo
+      ctx.fillStyle = 'rgba(0, 210, 211, 0.12)';
+      ctx.beginPath();
+      ctx.moveTo(techX, groundY);
+      ctx.lineTo(turbineBaseX, groundY);
+      ctx.lineTo(turbineBaseX, turbineTopY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Símbolo de Ângulo Reto (90°) na base da turbina
+      const sqSize = Math.min(16, triWidthPx * 0.25, triHeightPx * 0.25);
+      if (sqSize > 4) {
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(turbineBaseX - sqSize, groundY - sqSize, sqSize, sqSize);
+      }
+
+      // Cateto Adjacente (Distância horizontal d) - Verde Esmeralda
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(techX, groundY);
+      ctx.lineTo(turbineBaseX, groundY);
+      ctx.stroke();
+
+      // Cateto Oposto (Altura da turbina h) - Rosa/Coral
+      ctx.strokeStyle = '#fb7185';
+      ctx.lineWidth = 3.5;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(turbineBaseX, groundY);
+      ctx.lineTo(turbineBaseX, turbineTopY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Hipotenusa (Cabo de segurança c) - Âmbar/Dourado
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(techX, groundY);
+      ctx.lineTo(turbineBaseX, turbineTopY);
+      ctx.stroke();
+
+      // Arco do Ângulo de Elevação (θ) no vértice do técnico
+      const arcRadius = Math.min(44, triWidthPx * 0.45);
+      const rad = (state.angleDeg * Math.PI) / 180;
+      if (arcRadius > 8) {
+        ctx.strokeStyle = '#00d2d3';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(techX, groundY, arcRadius, -rad, 0);
+        ctx.stroke();
+      }
+
+      // 5. Desenho do Técnico com Clinômetro no ponto (techX, groundY)
+      drawFieldTechnician(techX, groundY, rad);
+
+      // 6. Rótulos Matemáticos Diretos sobre os Lados do Triângulo
+      drawTriangleLabels(techX, turbineBaseX, groundY, turbineTopY, arcRadius, rad);
+    }
+
+    function drawWindTurbine(baseX, groundY, topY, heightPx) {
+      const towerBottomW = Math.max(10, Math.min(20, heightPx * 0.08));
+      const towerTopW = Math.max(5, towerBottomW * 0.48);
+
+      // Base de concreto
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(baseX - towerBottomW * 0.85, groundY - 5, towerBottomW * 1.7, 5);
+
+      // Torre cônica metálica
+      const towerGrad = ctx.createLinearGradient(baseX - towerBottomW, 0, baseX + towerBottomW, 0);
+      towerGrad.addColorStop(0, '#cbd5e1');
+      towerGrad.addColorStop(0.5, '#f8fafc');
+      towerGrad.addColorStop(1, '#94a3b8');
+
+      ctx.fillStyle = towerGrad;
+      ctx.beginPath();
+      ctx.moveTo(baseX - towerBottomW / 2, groundY - 5);
+      ctx.lineTo(baseX + towerBottomW / 2, groundY - 5);
+      ctx.lineTo(baseX + towerTopW / 2, topY);
+      ctx.lineTo(baseX - towerTopW / 2, topY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Nacele (casa de máquinas no topo)
+      const nacelleW = Math.max(18, towerTopW * 2.4);
+      const nacelleH = Math.max(9, towerTopW * 1.2);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath();
+      ctx.roundRect(baseX - nacelleW * 0.4, topY - nacelleH / 2, nacelleW, nacelleH, 4);
+      ctx.fill();
+      ctx.strokeStyle = '#00d2d3';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Rotor e 3 Pás Aerodinâmicas Giratórias
+      const bladeLen = Math.max(26, Math.min(62, heightPx * 0.36));
+      ctx.save();
+      ctx.translate(baseX, topY);
+      ctx.rotate(state.rotorAngle);
+
+      for (let i = 0; i < 3; i++) {
+        ctx.save();
+        ctx.rotate((i * 2 * Math.PI) / 3);
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.moveTo(-2, 0);
+        ctx.lineTo(0, -bladeLen);
+        ctx.lineTo(3.5, -bladeLen * 0.25);
+        ctx.lineTo(2, 0);
+        ctx.closePath();
+        ctx.fill();
+        // Ponta vermelha de sinalização aeronáutica
+        ctx.fillStyle = '#fb7185';
+        ctx.fillRect(-0.8, -bladeLen, 2.2, bladeLen * 0.14);
+        ctx.restore();
+      }
+
+      // Hub central
+      ctx.fillStyle = '#00d2d3';
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawFieldTechnician(x, groundY, rad) {
+      ctx.save();
+      ctx.translate(x, groundY);
+
+      // Pernas
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(-3, -12); ctx.lineTo(-4, 0);
+      ctx.moveTo(3, -12); ctx.lineTo(4, 0);
+      ctx.stroke();
+
+      // Tronco (colete turquesa/azul)
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.roundRect(-5, -25, 10, 14, 3);
+      ctx.fill();
+
+      // Cabeça + Capacete amarelo
+      ctx.fillStyle = '#f1c27d';
+      ctx.beginPath();
+      ctx.arc(0, -30, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.arc(0, -31.5, 5, Math.PI, 0);
+      ctx.fill();
+
+      // Braço segurando clinômetro apontando para o topo
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -21);
+      ctx.lineTo(Math.cos(rad) * 11, -21 - Math.sin(rad) * 11);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawPillLabel(text, x, y, bgColor, textColor) {
+      ctx.font = 'bold 11px "JetBrains Mono", monospace';
+      const metrics = ctx.measureText(text);
+      const padX = 7;
+      const boxW = metrics.width + padX * 2;
+      const boxH = 20;
+
+      ctx.fillStyle = bgColor;
+      ctx.beginPath();
+      ctx.roundRect(x - boxW / 2, y - boxH / 2, boxW, boxH, 6);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = textColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, x, y + 0.5);
+    }
+
+    function drawTriangleLabels(techX, baseX, groundY, topY, arcRadius, rad) {
+      // Rótulo Distância (d) abaixo da base
+      const midBaseX = (techX + baseX) / 2;
+      drawPillLabel(`d = ${state.distance.toFixed(1)} m`, midBaseX, groundY + 20, 'rgba(6, 78, 59, 0.92)', '#6ee7b7');
+
+      // Rótulo Altura (h) à direita da torre
+      const midHeightY = (groundY + topY) / 2;
+      drawPillLabel(`h = ${state.height.toFixed(2)} m`, baseX + 46, midHeightY, 'rgba(136, 19, 55, 0.92)', '#fda4af');
+
+      // Rótulo Cabo / Hipotenusa (c) no ponto médio da hipotenusa
+      const midHypX = (techX + baseX) / 2 - 14;
+      const midHypY = (groundY + topY) / 2 - 14;
+      drawPillLabel(`c = ${state.cable.toFixed(2)} m`, midHypX, midHypY, 'rgba(120, 53, 15, 0.92)', '#fcd34d');
+
+      // Rótulo do Ângulo (θ) próximo ao arco
+      const angLabelX = techX + Math.cos(rad / 2) * (arcRadius + 24);
+      const angLabelY = groundY - Math.sin(rad / 2) * (arcRadius + 24);
+      drawPillLabel(`θ = ${state.angleDeg.toFixed(1)}°`, angLabelX, angLabelY, 'rgba(10, 25, 47, 0.92)', '#26e6e7');
+    }
+
+    /**
+     * 5. RENDERIZAÇÃO E VALIDAÇÃO DOS 6 DESAFIOS INVESTIGATIVOS
+     */
+    function renderChallengeStep() {
+      const idx = state.currentStep;
+      const ch = CHALLENGES[idx];
+      const resp = state.responses[idx];
+
+      // Atualiza barra de progresso e indicador
+      const completedCount = state.completedSteps.filter(Boolean).length;
+      const pct = Math.round((completedCount / CHALLENGES.length) * 100);
+      document.getElementById('progress-label').textContent = `Desafio ${idx + 1} de ${CHALLENGES.length}`;
+      document.getElementById('progress-percent').textContent = `${pct}%`;
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+
+      document.getElementById('challenge-badge').textContent = ch.badgeTitle;
+      document.getElementById('challenge-title').textContent = ch.title;
+      document.getElementById('challenge-desc').textContent = ch.desc;
+
+      // Renderiza indicadores de etapas (dots)
+      const dotsContainer = document.getElementById('step-dots');
+      dotsContainer.innerHTML = CHALLENGES.map((_, i) => {
+        const isDone = state.completedSteps[i];
+        const isCurrent = i === idx;
+        let cls = 'w-2.5 h-2.5 rounded-full transition-all ';
+        if (isDone) cls += 'bg-emerald-400 ';
+        else if (isCurrent) cls += 'bg-turquoise-400 scale-125 ';
+        else cls += 'bg-slate-700 ';
+        return `<button onclick="jumpToStep(${i})" title="Etapa ${i + 1}" class="${cls} cursor-pointer"></button>`;
+      }).join('');
+
+      // Configura predefinição inicial se aplicável
+      if (ch.preset && !state.completedSteps[idx]) {
+        setTriangleValues(ch.preset.dist, ch.preset.angle);
+      }
+
+      // Configura bloqueio/liberação visual dos controles
+      applyControlsLock(ch.lockControls);
+
+      // Atualiza fala do personagem
+      setCharacterState('neutral', ch.speechInit, `Etapa ${idx + 1}`);
+
+      // Oculta feedback anterior
+      const fb = document.getElementById('feedback-box');
+      fb.classList.add('hidden');
+
+      // Botões de navegação
+      document.getElementById('btn-prev-step').classList.toggle('hidden', idx === 0);
+      document.getElementById('btn-next-step').classList.toggle('hidden', !state.completedSteps[idx]);
+      document.getElementById('btn-next-step').textContent = idx === CHALLENGES.length - 1 ? 'Ver Relatório Final 🏆' : 'Próximo Desafio →';
+
+      // Renderiza formulário específico da etapa
+      const qContainer = document.getElementById('challenge-questions');
+      qContainer.innerHTML = getChallengeFormHTML(idx, resp);
+    }
+
+    function applyControlsLock(locks) {
+      const boxHeight = document.getElementById('control-box-height');
+      const inputHeight = document.getElementById('input-height');
+      const sliderHeight = document.getElementById('slider-height');
+
+      if (locks.height) {
+        boxHeight.classList.add('opacity-50');
+        inputHeight.disabled = true;
+        sliderHeight.disabled = true;
+      } else {
+        boxHeight.classList.remove('opacity-50');
+        inputHeight.disabled = false;
+        sliderHeight.disabled = false;
+      }
+    }
+
+    function getChallengeFormHTML(idx, resp) {
+      switch (idx) {
+        case 0: // DESAFIO 1 — INVESTIGAÇÃO DA ALTURA
+          return `
+            <div class="space-y-3">
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-rose-400 mb-1.5">1. Qual é a altura calculada da turbina (para d = 40 m e θ = 30°)?</label>
+                <div class="flex items-center gap-2">
+                  <input id="q0-height" type="number" step="0.01" value="${resp.heightInput}" placeholder="Ex: 23.09" class="flex-1 bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 font-mono text-sm text-white focus:outline-none focus:border-turquoise-400">
+                  <span class="text-xs font-mono text-slate-400">metros</span>
+                </div>
+                <span class="text-[11px] text-slate-400 mt-1 block">Dica: Utilize <code class="text-turquoise-400">h = d × tan(30°)</code>. Você também pode testar outros valores no simulador!</span>
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-turquoise-400 mb-1.5">2. Qual relação trigonométrica deve ser utilizada?</label>
+                <select id="q0-relation" class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">
+                  <option value="">Selecione a relação trigonométrica...</option>
+                  <option value="tan" ${resp.relation === 'tan' ? 'selected' : ''}>Tangente (tan θ = Cateto Oposto / Cateto Adjacente)</option>
+                  <option value="sin" ${resp.relation === 'sin' ? 'selected' : ''}>Seno (sen θ = Cateto Oposto / Hipotenusa)</option>
+                  <option value="cos" ${resp.relation === 'cos' ? 'selected' : ''}>Cosseno (cos θ = Cateto Adjacente / Hipotenusa)</option>
+                </select>
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-slate-200 mb-1.5">3. Como você chegou ao resultado? Explique seu raciocínio:</label>
+                <textarea id="q0-explanation" rows="2" placeholder="Explique passo a passo como relacionou a distância de 40 m e o ângulo de 30°..." class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">${resp.explanation}</textarea>
+              </div>
+            </div>
+          `;
+
+        case 1: // DESAFIO 2 — COMPRIMENTO DO CABO
+          return `
+            <div class="space-y-3">
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-amber-400 mb-1.5">1. Qual será o comprimento teórico do cabo até o topo (d = 40 m, θ = 30°)?</label>
+                <div class="flex items-center gap-2">
+                  <input id="q1-cable" type="number" step="0.01" value="${resp.cableInput}" placeholder="Ex: 46.19" class="flex-1 bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 font-mono text-sm text-white focus:outline-none focus:border-amber-400">
+                  <span class="text-xs font-mono text-slate-400">metros</span>
+                </div>
+                <span class="text-[11px] text-slate-400 mt-1 block">Fórmula: <code class="text-amber-400">c = d ÷ cos(30°)</code></span>
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-turquoise-400 mb-1.5">2. Por que utilizamos o cosseno para encontrar a hipotenusa nesta situação?</label>
+                <textarea id="q1-why" rows="2" placeholder="Relacione os lados conhecidos (cateto adjacente) e o lado procurado (hipotenusa)..." class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">${resp.whyCosine}</textarea>
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-slate-200 mb-1.5">3. Que fatores práticos de engenharia devem ser considerados além do cálculo matemático?</label>
+                <textarea id="q1-factors" rows="2" placeholder="Ex: folga do cabo (catenária), pontos de amarração, vento, dilatação, margem de segurança..." class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">${resp.practicalFactors}</textarea>
+              </div>
+            </div>
+          `;
+
+        case 2: // DESAFIO 3 — MUDANDO A POSIÇÃO
+          return `
+            <div class="space-y-3">
+              <div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-700/40 text-xs text-emerald-200">
+                <strong>Ação Experimental:</strong> Mova o controle de <strong>Distância (d)</strong> no simulador (ex: de 20 m para 40 m e 80 m) mantendo o ângulo constante.
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-rose-400 mb-1.5">1. O que acontece com a altura calculada quando a distância muda e o ângulo permanece constante?</label>
+                <textarea id="q2-height" rows="2" placeholder="Descreva o que você observou nos valores de altura..." class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">${resp.heightPattern}</textarea>
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-amber-400 mb-1.5">2. O que acontece com o comprimento do cabo nessas mesmas condições?</label>
+                <textarea id="q2-cable" rows="2" placeholder="Descreva o comportamento da hipotenusa (cabo)..." class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">${resp.cablePattern}</textarea>
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-turquoise-400 mb-1.5">3. Quais padrões matemáticos proporcionais podem ser observados?</label>
+                <textarea id="q2-rule" rows="2" placeholder="Ex: Se dobrarmos a distância mantendo o ângulo, o que ocorre com a altura e o cabo?" class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">${resp.generalRule}</textarea>
+              </div>
+            </div>
+          `;
+
+        case 3: // DESAFIO 4 — MUDANDO O ÂNGULO
+          return `
+            <div class="space-y-3">
+              <div class="p-3 rounded-xl bg-turquoise-950/40 border border-turquoise-700/40 text-xs text-turquoise-200">
+                <strong>Ação Experimental:</strong> Fixe uma distância (ex: 40 m) e varie o controle de <strong>Ângulo (θ)</strong> entre 15° e 70° no simulador.
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-rose-400 mb-1.5">1. O que acontece com a altura calculada quando o ângulo de elevação aumenta?</label>
+                <textarea id="q3-inc" rows="2" placeholder="Explique como a altura reage ao aumento do ângulo..." class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">${resp.angleIncrease}</textarea>
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-slate-200 mb-1.5">2. E o que ocorre quando o ângulo diminui?</label>
+                <textarea id="q3-dec" rows="2" placeholder="Descreva a mudança na altura quando o ângulo fica menor..." class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">${resp.angleDecrease}</textarea>
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-amber-400 mb-1.5">3. Como essas mudanças no ângulo afetam o comprimento do cabo?</label>
+                <textarea id="q3-cable" rows="2" placeholder="Explique a variação da hipotenusa conforme o ângulo cresce..." class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">${resp.cableEffect}</textarea>
+              </div>
+            </div>
+          `;
+
+        case 4: // DESAFIO EXTRA — PLANEJAMENTO E INCERTEZA
+          return `
+            <div class="space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div class="bg-navy-950/70 border border-slate-800 rounded-xl p-3">
+                  <label class="block text-[11px] font-bold text-rose-400 mb-1">Altura estimada a 25 m (30°):</label>
+                  <input id="q4-h25" type="number" step="0.01" value="${resp.h25}" placeholder="Ex: 14.43" class="w-full bg-navy-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-white">
+                </div>
+                <div class="bg-navy-950/70 border border-slate-800 rounded-xl p-3">
+                  <label class="block text-[11px] font-bold text-amber-400 mb-1">Cabo teórico a 40 m (30°):</label>
+                  <input id="q4-c40" type="number" step="0.01" value="${resp.c40}" placeholder="Ex: 46.19" class="w-full bg-navy-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-white">
+                </div>
+                <div class="bg-navy-950/70 border border-slate-800 rounded-xl p-3">
+                  <label class="block text-[11px] font-bold text-amber-400 mb-1">Cabo teórico a 25 m (30°):</label>
+                  <input id="q4-c25" type="number" step="0.01" value="${resp.c25}" placeholder="Ex: 28.87" class="w-full bg-navy-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-white">
+                </div>
+                <div class="bg-navy-950/70 border border-slate-800 rounded-xl p-3">
+                  <label class="block text-[11px] font-bold text-emerald-400 mb-1">Cabo a 40 m + 10% reserva:</label>
+                  <input id="q4-c40r" type="number" step="0.01" value="${resp.c40Reserve}" placeholder="Ex: 50.81" class="w-full bg-navy-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-white">
+                </div>
+                <div class="sm:col-span-2 bg-navy-950/70 border border-slate-800 rounded-xl p-3">
+                  <label class="block text-[11px] font-bold text-emerald-400 mb-1">Cabo a 25 m + 10% reserva:</label>
+                  <input id="q4-c25r" type="number" step="0.01" value="${resp.c25Reserve}" placeholder="Ex: 31.75" class="w-full bg-navy-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-white">
+                </div>
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-turquoise-400 mb-1.5">Conclusões Técnicas: Por que manter 30° a 25 m gerou uma altura diferente da original (23,09 m) e qual a importância da reserva de 10%?</label>
+                <textarea id="q4-conclusion" rows="3" placeholder="Registre sua análise sobre incerteza na leitura angular, erro de posicionamento e margem de segurança..." class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">${resp.conclusion}</textarea>
+              </div>
+            </div>
+          `;
+
+        case 5: // ETAPA FINAL — MISSÃO AUTÔNOMA DO ENGENHEIRO
+          return `
+            <div class="space-y-3">
+              <div class="bg-navy-950 border border-turquoise-500/30 rounded-2xl p-3.5 flex items-center justify-between text-xs">
+                <div>
+                  <span class="text-slate-400 block">Configuração Atual no Simulador:</span>
+                  <span class="font-mono text-slate-200">Ajuste d e θ nos sliders à esquerda</span>
+                </div>
+                <div class="text-right font-mono">
+                  <div class="text-emerald-400 font-bold">d = <span id="step6-live-dist">${state.distance.toFixed(1)} m</span></div>
+                  <div class="text-turquoise-400 font-bold">θ = <span id="step6-live-angle">${state.angleDeg.toFixed(1)}°</span></div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                  <label class="block text-xs font-bold text-rose-400 mb-1.5">Sua Altura Calculada (m):</label>
+                  <input id="q5-height" type="number" step="0.01" value="${resp.calcHeight}" placeholder="Calcule d × tan(θ)" class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 font-mono text-sm text-white focus:outline-none focus:border-rose-400">
+                </div>
+
+                <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                  <label class="block text-xs font-bold text-amber-400 mb-1.5">Seu Cabo Calculado (m):</label>
+                  <input id="q5-cable" type="number" step="0.01" value="${resp.calcCable}" placeholder="Calcule d ÷ cos(θ)" class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 font-mono text-sm text-white focus:outline-none focus:border-amber-400">
+                </div>
+              </div>
+
+              <div class="bg-navy-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-turquoise-400 mb-1.5">Justificativa Matemática do Projeto:</label>
+                <textarea id="q5-justification" rows="3" placeholder="Explique as fórmulas e etapas que você usou para encontrar seus resultados..." class="w-full bg-navy-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-turquoise-400">${resp.justification}</textarea>
+              </div>
+            </div>
+          `;
+      }
+    }
+
+    /**
+     * VALIDAÇÃO DAS RESPOSTAS DE CADA DESAFIO
+     */
+    function verifyCurrentChallenge() {
+      const idx = state.currentStep;
+      const fb = document.getElementById('feedback-box');
+      let isValid = false;
+      let feedbackMsg = '';
+
+      if (idx === 0) {
+        const hVal = parseFloat(document.getElementById('q0-height').value);
+        const rel = document.getElementById('q0-relation').value;
+        const exp = document.getElementById('q0-explanation').value.trim();
+
+        state.responses[0] = { heightInput: isNaN(hVal) ? '' : hVal, relation: rel, explanation: exp };
+
+        const expectedH = 40 * Math.tan((30 * Math.PI) / 180); // 23.094 m
+        if (isNaN(hVal) || Math.abs(hVal - expectedH) > 0.25) {
+          feedbackMsg = `Verifique o cálculo da altura: para d = 40 m e θ = 30°, temos h = 40 × tan(30°) ≈ 40 × 0,5774 = 23,09 m.`;
+        } else if (rel !== 'tan') {
+          feedbackMsg = `Quase lá! Como conhecemos o cateto adjacente (40 m) e queremos o cateto oposto (altura), devemos utilizar a Tangente.`;
+        } else if (exp.length < 12) {
+          feedbackMsg = `Excelente cálculo! Agora escreva uma breve explicação de como você chegou a esse resultado no campo de texto.`;
+        } else {
+          isValid = true;
+          feedbackMsg = `Perfeito! A altura da turbina é de aproximadamente 23,09 m. Você aplicou corretamente h = d · tan(θ).`;
+        }
+      }
+
+      else if (idx === 1) {
+        const cVal = parseFloat(document.getElementById('q1-cable').value);
+        const why = document.getElementById('q1-why').value.trim();
+        const factors = document.getElementById('q1-factors').value.trim();
+
+        state.responses[1] = { cableInput: isNaN(cVal) ? '' : cVal, whyCosine: why, practicalFactors: factors };
+
+        const expectedC = 40 / Math.cos((30 * Math.PI) / 180); // 46.188 m
+        if (isNaN(cVal) || Math.abs(cVal - expectedC) > 0.3) {
+          feedbackMsg = `Revise o comprimento do cabo: c = 40 ÷ cos(30°) ≈ 40 ÷ 0,8660 = 46,19 m.`;
+        } else if (why.length < 12 || factors.length < 12) {
+          feedbackMsg = `Cálculo exato (46,19 m)! Complete as duas respostas investigativas explicando o uso do cosseno e os fatores práticos de campo (folga, amarração, vento, segurança).`;
+        } else {
+          isValid = true;
+          feedbackMsg = `Excelente análise técnica! O comprimento teórico é 46,19 m, e considerar catenária, fixação e margem de segurança é essencial na engenharia eólica.`;
+        }
+      }
+
+      else if (idx === 2) {
+        const hPat = document.getElementById('q2-height').value.trim();
+        const cPat = document.getElementById('q2-cable').value.trim();
+        const rule = document.getElementById('q2-rule').value.trim();
+
+        state.responses[2] = { heightPattern: hPat, cablePattern: cPat, generalRule: rule };
+
+        if (hPat.length < 10 || cPat.length < 10 || rule.length < 10) {
+          feedbackMsg = `Explore o controle de Distância (d) no simulador e preencha todas as três observações investigativas com detalhes.`;
+        } else {
+          isValid = true;
+          feedbackMsg = `Ótima investigação! Com ângulo constante, tanto a altura quanto o cabo são diretamente proporcionais à distância (triângulos semelhantes).`;
+        }
+      }
+
+      else if (idx === 3) {
+        const inc = document.getElementById('q3-inc').value.trim();
+        const dec = document.getElementById('q3-dec').value.trim();
+        const cab = document.getElementById('q3-cable').value.trim();
+
+        state.responses[3] = { angleIncrease: inc, angleDecrease: dec, cableEffect: cab };
+
+        if (inc.length < 10 || dec.length < 10 || cab.length < 10) {
+          feedbackMsg = `Altere o Ângulo (θ) no simulador e descreva claramente o que ocorre quando o ângulo aumenta, diminui e como o cabo é afetado.`;
+        } else {
+          isValid = true;
+          feedbackMsg = `Excelente! Como tan(θ) cresce rapidamente com o ângulo (de forma não linear), pequenos aumentos angulares em ângulos elevados exigem alturas e cabos muito maiores.`;
+        }
+      }
+
+      else if (idx === 4) {
+        const h25 = parseFloat(document.getElementById('q4-h25').value);
+        const c40 = parseFloat(document.getElementById('q4-c40').value);
+        const c25 = parseFloat(document.getElementById('q4-c25').value);
+        const c40r = parseFloat(document.getElementById('q4-c40r').value);
+        const c25r = parseFloat(document.getElementById('q4-c25r').value);
+        const conc = document.getElementById('q4-conclusion').value.trim();
+
+        state.responses[4] = {
+          h25: isNaN(h25) ? '' : h25,
+          c40: isNaN(c40) ? '' : c40,
+          c25: isNaN(c25) ? '' : c25,
+          c40Reserve: isNaN(c40r) ? '' : c40r,
+          c25Reserve: isNaN(c25r) ? '' : c25r,
+          conclusion: conc
+        };
+
+        const expH25 = 25 * Math.tan(Math.PI / 6); // 14.43
+        const expC40 = 40 / Math.cos(Math.PI / 6); // 46.19
+        const expC25 = 25 / Math.cos(Math.PI / 6); // 28.87
+        const expC40R = expC40 * 1.1; // 50.81
+        const expC25R = expC25 * 1.1; // 31.75
+
+        if (
+          isNaN(h25) || Math.abs(h25 - expH25) > 0.25 ||
+          isNaN(c40) || Math.abs(c40 - expC40) > 0.3 ||
+          isNaN(c25) || Math.abs(c25 - expC25) > 0.25 ||
+          isNaN(c40r) || Math.abs(c40r - expC40R) > 0.35 ||
+          isNaN(c25r) || Math.abs(c25r - expC25R) > 0.3
+        ) {
+          feedbackMsg = `Verifique seus cálculos: a 25 m (30°), h ≈ 14,43 m e cabo ≈ 28,87 m (com +10% = 31,75 m). A 40 m (30°), cabo ≈ 46,19 m (com +10% = 50,81 m).`;
+        } else if (conc.length < 15) {
+          feedbackMsg = `Todos os cálculos numéricos estão corretos! Agora registre sua conclusão técnica sobre a discrepância nas medições e a importância da reserva de 10%.`;
+        } else {
+          isValid = true;
+          feedbackMsg = `Análise impecável! Se a turbina tem 23,09 m reais, a 25 m o ângulo correto deveria ser ~42,7° (e não 30°). Isso evidencia como erros de leitura angular afetam o projeto e por que a margem de 10% é vital.`;
+        }
+      }
+
+      else if (idx === 5) {
+        const calcH = parseFloat(document.getElementById('q5-height').value);
+        const calcC = parseFloat(document.getElementById('q5-cable').value);
+        const just = document.getElementById('q5-justification').value.trim();
+
+        const curD = state.distance;
+        const curA = state.angleDeg;
+        const realH = state.height;
+        const realC = state.cable;
+
+        state.responses[5] = {
+          chosenDist: curD,
+          chosenAngle: curA,
+          calcHeight: isNaN(calcH) ? '' : calcH,
+          calcCable: isNaN(calcC) ? '' : calcC,
+          justification: just
+        };
+
+        if (Math.abs(curD - 40) < 0.1 && Math.abs(curA - 30) < 0.1) {
+          feedbackMsg = `Escolha uma combinação nova de Distância e Ângulo diferente de 40 m e 30° nos controles do simulador para realizar sua própria investigação!`;
+        } else if (isNaN(calcH) || Math.abs(calcH - realH) > 0.35) {
+          feedbackMsg = `Para d = ${curD.toFixed(1)} m e θ = ${curA.toFixed(1)}°, a altura correta é h = ${curD.toFixed(1)} × tan(${curA.toFixed(1)}°) ≈ ${realH.toFixed(2)} m.`;
+        } else if (isNaN(calcC) || Math.abs(calcC - realC) > 0.35) {
+          feedbackMsg = `Para d = ${curD.toFixed(1)} m e θ = ${curA.toFixed(1)}°, o cabo correto é c = ${curD.toFixed(1)} ÷ cos(${curA.toFixed(1)}°) ≈ ${realC.toFixed(2)} m.`;
+        } else if (just.length < 15) {
+          feedbackMsg = `Cálculos validados com sucesso! Escreva sua justificativa matemática detalhando as fórmulas utilizadas.`;
+        } else {
+          isValid = true;
+          feedbackMsg = `Missão Autônoma aprovada com louvor! Você escolheu d = ${curD.toFixed(1)} m e θ = ${curA.toFixed(1)}°, calculando h = ${realH.toFixed(2)} m e c = ${realC.toFixed(2)} m.`;
+        }
+      }
+
+      // Exibe feedback visual e reação do técnico
+      fb.classList.remove('hidden', 'bg-emerald-950/70', 'border-emerald-600/60', 'text-emerald-200', 'bg-amber-950/70', 'border-amber-600/60', 'text-amber-200');
+
+      if (isValid) {
+        fb.classList.add('bg-emerald-950/70', 'border-emerald-600/60', 'text-emerald-200');
+        fb.innerHTML = `<strong>✅ Excelente trabalho!</strong> ${feedbackMsg}`;
+
+        if (!state.completedSteps[idx]) {
+          state.completedSteps[idx] = true;
+          state.score += 100;
+          document.getElementById('score-display').textContent = state.score;
+
+          // Desbloqueia medalha associada
+          const badgeId = CHALLENGES[idx].badgeId;
+          if (badgeId) {
+            const b = state.badges.find(item => item.id === badgeId);
+            if (b) b.unlocked = true;
+            updateBadgesHeader();
+          }
+        }
+
+        // Atualiza barra de progresso e botão próximo
+        const completedCount = state.completedSteps.filter(Boolean).length;
+        const pct = Math.round((completedCount / CHALLENGES.length) * 100);
+        document.getElementById('progress-percent').textContent = `${pct}%`;
+        document.getElementById('progress-bar').style.width = `${pct}%`;
+
+        document.getElementById('btn-next-step').classList.remove('hidden');
+        document.getElementById('btn-next-step').textContent = idx === CHALLENGES.length - 1 ? 'Concluir e Ver Relatório 🏆' : 'Próximo Desafio →';
+
+        setCharacterState('celebrate', 'Fantástico! Seus cálculos e análises estão precisos. Avance para a próxima etapa!', 'Aprovado!');
+      } else {
+        fb.classList.add('bg-amber-950/70', 'border-amber-600/60', 'text-amber-200');
+        fb.innerHTML = `<strong>⚠️ Atenção Técnica:</strong> ${feedbackMsg}`;
+        setCharacterState('alert', feedbackMsg, 'Revisar');
+      }
+    }
+
+    function nextChallenge() {
+      if (state.currentStep < CHALLENGES.length - 1) {
+        state.currentStep++;
+        renderChallengeStep();
+      } else {
+        showSummaryScreen();
+      }
+    }
+
+    function prevChallenge() {
+      if (state.currentStep > 0) {
+        state.currentStep--;
+        renderChallengeStep();
+      }
+    }
+
+    function jumpToStep(stepIdx) {
+      // Permite navegar livremente entre etapas já concluídas ou a próxima imediata
+      if (stepIdx <= state.currentStep || state.completedSteps[stepIdx - 1] || state.completedSteps[stepIdx]) {
+        state.currentStep = stepIdx;
+        renderChallengeStep();
+      }
+    }
+
+    function updateBadgesHeader() {
+      const unlocked = state.badges.filter(b => b.unlocked).length;
+      document.getElementById('badges-count').textContent = `${unlocked}/${state.badges.length}`;
+    }
+
+    /**
+     * 6. TELA DE CONCLUSÃO E RELATÓRIO DE DESEMPENHO
+     */
+    function escapeHTML(value) {
+      return String(value ?? '—').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    }
+
+    function showSummaryScreen() {
+      document.getElementById('screen-game').classList.add('hidden');
+      document.getElementById('screen-summary').classList.remove('hidden');
+
+      document.getElementById('final-score').textContent = state.score;
+      const unlockedBadges = state.badges.filter(b => b.unlocked);
+      document.getElementById('final-badges-count').textContent = `${unlockedBadges.length} / ${state.badges.length}`;
+
+      // Renderiza Medalhas
+      const badgesGrid = document.getElementById('final-badges-grid');
+      badgesGrid.innerHTML = state.badges.map(b => `
+        <div class="p-4 rounded-2xl border ${b.unlocked ? 'bg-navy-950/90 border-amber-500/40' : 'bg-navy-950/40 border-slate-800 opacity-50'} flex items-start gap-3">
+          <span class="text-2xl">${b.icon}</span>
+          <div>
+            <div class="font-bold text-sm ${b.unlocked ? 'text-amber-300' : 'text-slate-400'}">${b.name}</div>
+            <p class="text-xs text-slate-300 mt-0.5">${b.desc}</p>
+          </div>
+        </div>
+      `).join('');
+
+      // Renderiza Relatório Consolidado das Respostas
+      const r = state.responses;
+      const reportList = document.getElementById('report-answers-list');
+      reportList.innerHTML = `
+        <div class="p-4 rounded-2xl bg-navy-950/80 border border-slate-800 space-y-1 text-xs sm:text-sm">
+          <div class="font-bold text-turquoise-400">Desafio 1 — Investigação da Altura (40 m, 30°)</div>
+          <p><strong>Altura calculada:</strong> ${r[0].heightInput} m | <strong>Relação:</strong> Tangente</p>
+          <p class="text-slate-300"><strong>Raciocínio:</strong> ${r[0].explanation || '—'}</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-navy-950/80 border border-slate-800 space-y-1 text-xs sm:text-sm">
+          <div class="font-bold text-turquoise-400">Desafio 2 — Comprimento do Cabo (40 m, 30°)</div>
+          <p><strong>Cabo calculado:</strong> ${r[1].cableInput} m</p>
+          <p class="text-slate-300"><strong>Uso do cosseno:</strong> ${r[1].whyCosine || '—'}</p>
+          <p class="text-slate-300"><strong>Fatores práticos:</strong> ${r[1].practicalFactors || '—'}</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-navy-950/80 border border-slate-800 space-y-1 text-xs sm:text-sm">
+          <div class="font-bold text-turquoise-400">Desafio 3 — Mudando a Posição (Ângulo Constante)</div>
+          <p class="text-slate-300"><strong>Efeito na altura:</strong> ${r[2].heightPattern || '—'}</p>
+          <p class="text-slate-300"><strong>Efeito no cabo:</strong> ${r[2].cablePattern || '—'}</p>
+          <p class="text-slate-300"><strong>Padrão proporcional:</strong> ${r[2].generalRule || '—'}</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-navy-950/80 border border-slate-800 space-y-1 text-xs sm:text-sm">
+          <div class="font-bold text-turquoise-400">Desafio 4 — Mudando o Ângulo de Elevação</div>
+          <p class="text-slate-300"><strong>Quando o ângulo aumenta:</strong> ${r[3].angleIncrease || '—'}</p>
+          <p class="text-slate-300"><strong>Quando o ângulo diminui:</strong> ${r[3].angleDecrease || '—'}</p>
+          <p class="text-slate-300"><strong>Impacto no cabo:</strong> ${r[3].cableEffect || '—'}</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-navy-950/80 border border-slate-800 space-y-1 text-xs sm:text-sm">
+          <div class="font-bold text-turquoise-400">Desafio Extra — Planejamento, Incerteza e Reserva de 10%</div>
+          <p><strong>Altura a 25 m (30°):</strong> ${r[4].h25} m | <strong>Cabo 40 m (+10%):</strong> ${r[4].c40} m (${r[4].c40Reserve} m) | <strong>Cabo 25 m (+10%):</strong> ${r[4].c25} m (${r[4].c25Reserve} m)</p>
+          <p class="text-slate-300"><strong>Conclusão técnica:</strong> ${r[4].conclusion || '—'}</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-navy-950/80 border border-slate-800 space-y-1 text-xs sm:text-sm">
+          <div class="font-bold text-turquoise-400">Etapa Final — Missão Autônoma do Engenheiro</div>
+          <p><strong>Parâmetros escolhidos:</strong> d = ${escapeHTML(Number(r[5].chosenDist).toFixed(1))} m, θ = ${escapeHTML(Number(r[5].chosenAngle).toFixed(1))}° | <strong>Altura:</strong> ${r[5].calcHeight} m | <strong>Cabo:</strong> ${r[5].calcCable} m</p>
+          <p class="text-slate-300"><strong>Justificativa matemática:</strong> ${r[5].justification || '—'}</p>
+        </div>
+      `;
+    }
+
+    /**
+     * MODAIS DE MEDALHAS E REINÍCIO (SEM USO DE alert() OU confirm())
+     */
+    function openBadgesModal() {
+      const overlay = document.getElementById('modal-overlay');
+      const content = document.getElementById('modal-content');
+
+      content.innerHTML = `
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-lg text-white">🏅 Quadro de Medalhas</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl leading-none cursor-pointer">&times;</button>
+        </div>
+        <div class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+          ${state.badges.map(b => `
+            <div class="p-3 rounded-2xl border ${b.unlocked ? 'bg-navy-950 border-amber-500/40' : 'bg-navy-950/40 border-slate-800 opacity-50'} flex items-center gap-3">
+              <span class="text-2xl">${b.icon}</span>
+              <div>
+                <div class="font-bold text-xs sm:text-sm ${b.unlocked ? 'text-amber-300' : 'text-slate-400'}">${b.name} ${b.unlocked ? '✓' : '(Bloqueada)'}</div>
+                <p class="text-xs text-slate-300">${b.desc}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <button onclick="closeModal()" class="w-full py-2.5 rounded-xl bg-turquoise-500 text-navy-950 font-bold text-xs cursor-pointer">Continuar Missão</button>
+      `;
+      overlay.classList.remove('hidden');
+    }
+
+    function openResetModal() {
+      const overlay = document.getElementById('modal-overlay');
+      const content = document.getElementById('modal-content');
+
+      content.innerHTML = `
+        <h3 class="font-bold text-lg text-white">Reiniciar Operação?</h3>
+        <p class="text-xs sm:text-sm text-slate-300">Isso apagará sua pontuação atual, medalhas conquistadas e respostas registradas para começar uma nova partida do zero.</p>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-xs font-semibold text-slate-200 cursor-pointer">Cancelar</button>
+          <button onclick="confirmReset()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white cursor-pointer">Sim, Reiniciar</button>
+        </div>
+      `;
+      overlay.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.add('hidden');
+    }
+
+    function confirmReset() {
+      closeModal();
+      resetEntireGame();
+    }
+
+    function resetEntireGame() {
+      state.currentStep = 0;
+      state.score = 0;
+      state.completedSteps = [false, false, false, false, false, false];
+      state.badges.forEach(b => b.unlocked = false);
+      state.responses = {
+        0: { heightInput: '', relation: '', explanation: '' },
+        1: { cableInput: '', whyCosine: '', practicalFactors: '' },
+        2: { heightPattern: '', cablePattern: '', generalRule: '' },
+        3: { angleIncrease: '', angleDecrease: '', cableEffect: '' },
+        4: { h25: '', c40: '', c25: '', c40Reserve: '', c25Reserve: '', conclusion: '' },
+        5: { chosenDist: 40, chosenAngle: 30, calcHeight: '', calcCable: '', justification: '' }
+      };
+
+      document.getElementById('score-display').textContent = '0';
+      updateBadgesHeader();
+      updateCalculationsFromDistAngle(40, 30);
+
+      document.getElementById('screen-summary').classList.add('hidden');
+      document.getElementById('screen-intro').classList.add('hidden');
+      document.getElementById('screen-game').classList.remove('hidden');
+
+      state.mode = 'campaign';
+      document.getElementById('progress-container').classList.remove('hidden');
+      document.getElementById('challenge-card').classList.remove('hidden');
+      document.getElementById('sandbox-card').classList.add('hidden');
+      renderChallengeStep();
+      resizeCanvas();
+    }
+  </script>
+</body>
+</html>
